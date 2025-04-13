@@ -80,4 +80,4 @@ app.post('/api/wallet/send', async (req, res) => {
 });
 
 const port = process.env.PORT || 3001;
-app.listen(port, () => console.log(Server running on port ${port}));
+app.listen(port, () => console.log(`Server running on port ${port}`));
