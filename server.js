@@ -8,18 +8,13 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-const express = require('express');
-const mongoose = require('mongoose');
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-app.use(express.json());
-app.get('/api/wallet/list', async (req, res) => {
-  const wallets = await Wallet.find({ userId: 'default' });
-  res.json(wallets);
-});
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Wallet schema
 const walletSchema = new mongoose.Schema({
-  userId: { type: String, default: 'default' }, // Placeholder for auth
+  userId: { type: String, default: 'default' },
   address: { type: String, required: true },
   privateKey: { type: String, required: true },
   mnemonic: { type: String, required: true },
@@ -38,11 +33,7 @@ app.post('/api/wallet/create', async (req, res) => {
       mnemonic: wallet.mnemonic.phrase
     };
     const savedWallet = await Wallet.create(walletData);
-    res.json({
-      address: savedWallet.address,
-      privateKey: savedWallet.privateKey,
-      mnemonic: savedWallet.mnemonic
-    });
+    res.json({ address: savedWallet.address });
   } catch (error) {
     console.error('Error creating wallet:', error);
     res.status(500).json({ error: error.message });
@@ -63,7 +54,7 @@ app.get('/api/wallet/list', async (req, res) => {
 app.post('/api/wallet/balance', async (req, res) => {
   try {
     const { address } = req.body;
-    const provider = new ethers.JsonRpcProvider('https://mainnet.infura.io/v3/a68053a6d40d4f6f8f2fda942068a4ba');
+    const provider = new ethers.JsonRpcProvider(process.env.INFURA_URL || 'https://sepolia.infura.io/v3/' + process.env.INFURA_KEY);
     const balance = await provider.getBalance(address);
     res.json({ balance: ethers.formatEther(balance) });
   } catch (error) {
@@ -75,7 +66,7 @@ app.post('/api/wallet/balance', async (req, res) => {
 app.post('/api/wallet/send', async (req, res) => {
   try {
     const { privateKey, toAddress, amount } = req.body;
-    const provider = new ethers.JsonRpcProvider('https://mainnet.infura.io/v3/a68053a6d40d4f6f8f2fda942068a4ba');
+    const provider = new ethers.JsonRpcProvider(process.env.INFURA_URL || 'https://sepolia.infura.io/v3/' + process.env.INFURA_KEY);
     const wallet = new ethers.Wallet(privateKey, provider);
     const tx = await wallet.sendTransaction({
       to: toAddress,
@@ -89,4 +80,4 @@ app.post('/api/wallet/send', async (req, res) => {
 });
 
 const port = process.env.PORT || 3001;
-app.listen(port, () => console.log(`Server running on port ${port}`));
+app.listen(port, () => console.log(Server running on port ${port}));
