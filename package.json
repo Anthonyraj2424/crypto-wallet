@@ -1,5 +1,5 @@
 {
- 
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "crypto-dashboard",
   "version": "1.0.0",
   "main": "server.js",
