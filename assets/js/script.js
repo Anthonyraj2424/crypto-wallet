@@ -377,7 +377,7 @@ const loadWallets = async () => {
     return;
   }
   try {
-    const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/list', {
+    const response = await fetch('https://https://crypto-wallet-i7zk.onrender.com/api/wallet/list', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       mode: 'cors'
@@ -398,7 +398,7 @@ const createWallet = async function () {
     return;
   }
   try {
-    const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/create', {
+    const response = await fetch('https://https://crypto-wallet-i7zk.onrender.com/api/wallet/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       mode: 'cors',
@@ -419,7 +419,7 @@ const createWallet = async function () {
 const checkBalance = async function (index) {
   try {
     const address = wallets[index].address;
-    const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/balance', {
+    const response = await fetch('https://https://crypto-wallet-i7zk.onrender.com/api/wallet/balance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       mode: 'cors',
@@ -443,7 +443,7 @@ const sendTransaction = async function (event, index) {
     const toAddress = document.getElementById(`toAddress-${index}`).value;
     const amount = document.getElementById(`amount-${index}`).value;
     const privateKey = wallets[index].privateKey;
-    const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/send', {
+    const response = await fetch('https://https://crypto-wallet-i7zk.onrender.com/api/wallet/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       mode: 'cors',
