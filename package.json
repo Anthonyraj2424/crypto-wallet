@@ -1,15 +1,9 @@
-{
-  "$schema": "https://json.schemastore.org/package.json",
-  "name": "crypto-dashboard",
-  "version": "1.0.0",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "ethers": "^6.13.2",
-    "express": "^4.21.1",
-    "mongoose": "^8.7.2"
+
+  {
+    "dependencies": {
+      "cors": "^2.8.5",
+      "ethers": "^6.13.2",
+      "express": "^4.21.1",
+      "mongoose": "^8.7.2"
+    }
   }
-}
