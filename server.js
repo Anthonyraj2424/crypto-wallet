@@ -4,7 +4,11 @@ const mongoose = require('mongoose');
 const ethers = require('ethers');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://crypto-wallet-six-rho.vercel.app', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}));
 app.use(express.json());
 
 // Connect to MongoDB
@@ -58,6 +62,7 @@ app.post('/api/wallet/balance', async (req, res) => {
     const balance = await provider.getBalance(address);
     res.json({ balance: ethers.formatEther(balance) });
   } catch (error) {
+    console.error('Error checking balance:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -75,9 +80,34 @@ app.post('/api/wallet/send', async (req, res) => {
     const receipt = await tx.wait();
     res.json({ transactionHash: receipt.hash });
   } catch (error) {
+    console.error('Error sending transaction:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Server running on port ${port}`));
+
+// Fetch wallets
+fetch('https://crypto-wallet-backend.onrender.com/api/wallet/list')
+  .then(response => response.json())
+  .then(wallets => {
+    console.log(wallets);
+    // TODO: Update DOM (e.g., <div id="wallet-list">)
+  })
+  .catch(error => console.error('Error:', error));
+
+// Create wallet (e.g., on button click)
+function createWallet() {
+  fetch('https://crypto-wallet-backend.onrender.com/api/wallet/create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: 'default' })
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Created:', data.address);
+      // TODO: Refresh wallet list
+    })
+    .catch(error => console.error('Error:', error));
+}
