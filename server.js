@@ -11,7 +11,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Debug environment
 console.log('Starting server...');
 console.log('INFURA_KEY set:', !!process.env.INFURA_KEY);
 console.log('MONGODB_URI set:', !!process.env.MONGODB_URI);
@@ -61,7 +60,7 @@ app.post('/api/wallet/balance', async (req, res) => {
       throw new Error('INFURA_KEY is not configured');
     }
     const { address } = req.body;
-    console.log('Balance request for address:', address); // Debug
+    console.log('Balance request:', { address }); // Debug
     if (!address) {
       throw new Error('Address is missing in request body');
     }
@@ -100,12 +99,10 @@ app.post('/api/wallet/send', async (req, res) => {
   }
 });
 
-// Health check route
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
 
-// Handle undefined routes
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
