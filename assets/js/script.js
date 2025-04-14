@@ -15,7 +15,7 @@ const addEventOnElem = function (elem, type, callback) {
   } else {
     elem.addEventListener(type, callback);
   }
-};
+}
 
 /**
  * Navbar toggle
@@ -89,6 +89,7 @@ addEventOnElem(window, "scroll", scrollReveal);
  */
 document.addEventListener('DOMContentLoaded', () => {
   console.log("DOM fully loaded, script running");
+});
 
   // Chart initialization function
   const createChart = (canvasId, label) => {
@@ -116,8 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
         maintainAspectRatio: false,
         animation: { duration: 0 }
       }
-    });
-  };
+        });
+      };
+  
 
   // Initialize charts
   if (typeof Chart !== 'undefined') {
@@ -377,7 +379,7 @@ const loadWallets = async () => {
     return;
   }
   try {
-    console.log('Fetching wallets from /api/wallet/list'); // Debug
+    console.log('Fetching wallets from /api/wallet/list');
     const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/list', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
@@ -387,12 +389,11 @@ const loadWallets = async () => {
       throw new Error(`Failed to load wallets: ${response.status} ${response.statusText}`);
     }
     wallets = await response.json();
-    console.log('Loaded wallets:', wallets); // Debug
+    console.log('Loaded wallets:', wallets);
     displayWallets();
   } catch (error) {
     console.error('Error loading wallets:', error);
     walletList.innerHTML = '<p>Failed to load wallets. Please try again.</p>';
-    alert('Failed to load wallets: ' + error.message);
   }
 };
 
@@ -402,7 +403,7 @@ const createWallet = async function () {
     return;
   }
   try {
-    console.log('Creating wallet via /api/wallet/create'); // Debug
+    console.log('Creating wallet via /api/wallet/create');
     const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -413,9 +414,8 @@ const createWallet = async function () {
       throw new Error(`Failed to create wallet: ${response.status} ${response.statusText}`);
     }
     const wallet = await response.json();
-    console.log('Created wallet:', wallet); // Debug
-    // Server returns { address: "0x..." }, fetch full wallet
-    await loadWallets(); // Reload to get full list
+    console.log('Created wallet:', wallet);
+    await loadWallets();
   } catch (error) {
     console.error('Error creating wallet:', error);
     alert('Failed to create wallet: ' + error.message);
@@ -425,15 +425,19 @@ const createWallet = async function () {
 const checkBalance = async function (index) {
   try {
     const address = wallets[index].address;
-    console.log('Checking balance for:', address); // Debug
+    console.log('Checking balance for:', address);
+    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      throw new Error('Invalid wallet address');
+    }
     const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/balance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       mode: 'cors',
       body: JSON.stringify({ address })
     });
-    if (!response.ok) {
-      throw new Error(`Failed to check balance: ${response.status} ${response.statusText}`);
+   if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to check balance: ${response.status} ${errorText}`);
     }
     const data = await response.json();
     const balanceSpan = document.getElementById(`balance-${index}`);
@@ -451,8 +455,8 @@ const sendTransaction = async function (event, index) {
   try {
     const toAddress = document.getElementById(`toAddress-${index}`).value;
     const amount = document.getElementById(`amount-${index}`).value;
-    const privateKey = wallets[index].privateKey || 'dummy-key'; // Fallback
-    console.log('Sending transaction:', { toAddress, amount }); // Debug
+    const privateKey = wallets[index].privateKey || 'dummy-key';
+    console.log('Sending transaction:', { toAddress, amount });
     const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -527,7 +531,7 @@ const displayWallets = function () {
 
 // Open wallet modal
 addEventOnElem(walletBtn, 'click', () => {
-  console.log('Wallet button clicked'); // Debug
+  console.log('Wallet button clicked');
   if (walletModal) {
     walletModal.classList.add('active');
     loadWallets();
@@ -538,15 +542,17 @@ addEventOnElem(walletBtn, 'click', () => {
 
 // Close wallet modal
 addEventOnElem(walletCloseBtn, 'click', () => {
-  console.log('Close wallet modal clicked'); // Debug
+  console.log('Close wallet modal clicked');
   if (walletModal) {
     walletModal.classList.remove('active');
   }
 });
 
 // Create wallet
-addEventOnElem(createWalletBtn, 'click', () => {
-  console.log('Create wallet button clicked'); // Debug
-  createWallet();
+if (createWalletBtn) {
+  console.log('Binding createWalletBtn');
+  addEventOnElem(createWalletBtn, 'click', () => {
+    console.log('Create Wallet clicked');
+    createWallet();
   });
-});
+}
