@@ -12,6 +12,7 @@ app.use(cors({
 app.use(express.json());
 
 // Debug environment
+console.log('Starting server...');
 console.log('INFURA_KEY set:', !!process.env.INFURA_KEY);
 console.log('MONGODB_URI set:', !!process.env.MONGODB_URI);
 
@@ -93,6 +94,11 @@ app.post('/api/wallet/send', async (req, res) => {
     console.error('Error sending transaction:', error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// Health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
 });
 
 // Handle undefined routes
