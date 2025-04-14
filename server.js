@@ -2,12 +2,18 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const ethers = require('ethers');
+const fetch = require('node-fetch');
 
 const app = express();
 app.use(cors({
-  origin: ['https://crypto-wallet-six-rho.vercel.app', 'http://localhost:3000'],
+  origin: [
+    'https://crypto-wallet-aaqgaev41-anthony-rajs-projects.vercel.app',
+    'https://crypto-wallet-six-rho.vercel.app',
+    'http://localhost:3000'
+  ],
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
+  allowedHeaders: ['Content-Type'],
+  credentials: true
 }));
 app.use(express.json());
 
@@ -47,10 +53,11 @@ app.post('/api/wallet/create', async (req, res) => {
 
 app.get('/api/wallet/list', async (req, res) => {
   try {
-    const wallets = await Wallet.find({ userId: 'default' }).select('-privateKey -mnemonic');
+    const wallets = await Wallet.find({ userId: 'default' }).select('address');
     res.json(wallets);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error listing wallets:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -60,9 +67,9 @@ app.post('/api/wallet/balance', async (req, res) => {
       throw new Error('INFURA_KEY is not configured');
     }
     const { address } = req.body;
-    console.log('Balance request:', { address }); // Debug
+    console.log('Balance request:', { address });
     if (!address) {
-      throw new Error('Address is missing in request body');
+      throw new Error('Address is missing');
     }
     if (!ethers.isAddress(address)) {
       throw new Error(`Invalid Ethereum address: ${address}`);
@@ -81,17 +88,26 @@ app.post('/api/wallet/send', async (req, res) => {
     if (!process.env.INFURA_KEY) {
       throw new Error('INFURA_KEY is not configured');
     }
-    const { privateKey, toAddress, amount } = req.body;
+    const { toAddress, amount } = req.body;
+    console.log('Send transaction request:', { toAddress, amount });
+    if (!toAddress || !amount) {
+      throw new Error('Missing toAddress or amount');
+    }
     if (!ethers.isAddress(toAddress)) {
-      throw new Error('Invalid Ethereum address');
+      throw new Error(`Invalid recipient address: ${toAddress}`);
+    }
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      throw new Error('Invalid amount');
     }
     const provider = new ethers.JsonRpcProvider('https://sepolia.infura.io/v3/' + process.env.INFURA_KEY);
-    const wallet = new ethers.Wallet(privateKey, provider);
-    const tx = await wallet.sendTransaction({
+    const wallet = new ethers.Wallet(process.env.SEPOLIA_PRIVATE_KEY, provider);
+    const tx = {
       to: toAddress,
       value: ethers.parseEther(amount)
-    });
-    const receipt = await tx.wait();
+    };
+    const txResponse = await wallet.sendTransaction(tx);
+    const receipt = await txResponse.wait();
     res.json({ transactionHash: receipt.hash });
   } catch (error) {
     console.error('Error sending transaction:', error);
@@ -99,8 +115,37 @@ app.post('/api/wallet/send', async (req, res) => {
   }
 });
 
+app.get('/api/coingecko/markets', async (req, res) => {
+  try {
+    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,tether,binancecoin,solana,ripple,cardano,avalanche-2&order=market_cap_desc&per_page=8&page=1&sparkline=false');
+    if (!response.ok) {
+      throw new Error('Failed to fetch CoinGecko data');
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching CoinGecko:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/coingecko/coins/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await fetch(`https://api.coingecko.com/api/v3/coins/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch coin data');
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching coin:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
+  res.json({ status: 'OK' });
 });
 
 app.use((req, res) => {
