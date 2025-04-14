@@ -61,8 +61,12 @@ app.post('/api/wallet/balance', async (req, res) => {
       throw new Error('INFURA_KEY is not configured');
     }
     const { address } = req.body;
+    console.log('Balance request for address:', address); // Debug
+    if (!address) {
+      throw new Error('Address is missing in request body');
+    }
     if (!ethers.isAddress(address)) {
-      throw new Error('Invalid Ethereum address');
+      throw new Error(`Invalid Ethereum address: ${address}`);
     }
     const provider = new ethers.JsonRpcProvider('https://sepolia.infura.io/v3/' + process.env.INFURA_KEY);
     const balance = await provider.getBalance(address);
