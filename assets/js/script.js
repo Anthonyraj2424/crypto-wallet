@@ -351,143 +351,185 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error("Chart.js not loaded. Chart functionality will be skipped.");
   }
 
-  // Wallet functionality
-  console.log("Setting up wallet...");
-  const walletBtn = document.getElementById('wallet-btn');
-  const walletModal = document.getElementById('wallet-modal');
-  const walletCloseBtn = document.querySelector('.wallet-modal-close');
-  const createWalletBtn = document.getElementById('createWalletBtn');
-  const walletList = document.getElementById('wallet-list');
+ // Wallet functionality
+console.log("Setting up wallet...");
+const walletBtn = document.getElementById('wallet-btn');
+const walletModal = document.getElementById('wallet-modal');
+const walletCloseBtn = document.querySelector('.wallet-modal-close');
+const createWalletBtn = document.getElementById('createWalletBtn');
+const walletList = document.getElementById('wallet-list');
 
-  let wallets = [];
+if (!walletBtn || !walletModal || !walletCloseBtn || !createWalletBtn || !walletList) {
+  console.error("Wallet DOM elements missing:", {
+    walletBtn: !!walletBtn,
+    walletModal: !!walletModal,
+    walletCloseBtn: !!walletCloseBtn,
+    createWalletBtn: !!createWalletBtn,
+    walletList: !!walletList
+  });
+}
 
-  const loadWallets = async () => {
-    try {
-      const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/list', {
-        headers: { 'Content-Type': 'application/json' }
-      });
-      if (!response.ok) throw new Error('Failed to load wallets');
-      wallets = await response.json();
-      displayWallets();
-    } catch (error) {
-      console.error('Error loading wallets:', error);
-      alert('Failed to load wallets: ' + error.message);
-    }
-  };
-  
-  const createWallet = async function () {
-    try {
-      const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      if (!response.ok) throw new Error('Failed to create wallet');
-      const wallet = await response.json();
-      wallets.push(wallet);
-      displayWallets();
-      console.log("Wallet created:", wallet);
-    } catch (error) {
-      console.error('Error creating wallet:', error);
-      alert('Failed to create wallet: ' + error.message);
-    }
-  };
-  
-  const checkBalance = async function (index) {
-    try {
-      const address = wallets[index].address;
-      const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/balance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address })
-      });
-      if (!response.ok) throw new Error('Failed to check balance');
-      const data = await response.json();
-      const balanceSpan = document.getElementById(`balance-${index}`);
-      balanceSpan.textContent = `${data.balance} ETH`;
-    } catch (error) {
-      console.error('Error checking balance:', error);
-      alert('Failed to check balance: ' + error.message);
-    }
-  };
-  
-  const sendTransaction = async function (event, index) {
-    event.preventDefault();
-    try {
-      const toAddress = document.getElementById(`toAddress-${index}`).value;
-      const amount = document.getElementById(`amount-${index}`).value;
-      const privateKey = wallets[index].privateKey;
-      const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ privateKey, toAddress, amount })
-      });
-      if (!response.ok) throw new Error('Failed to send transaction');
-      const data = await response.json();
-      const resultSpan = document.getElementById(`txResult-${index}`);
-      resultSpan.textContent = `Transaction sent: ${data.transactionHash}`;
-    } catch (error) {
-      console.error('Error sending transaction:', error);
-      alert('Failed to send transaction: ' + error.message);
-    }
-  };
-  
-  const displayWallets = function () {
-    if (!walletList) return;
-    walletList.innerHTML = '';
-    wallets.forEach((wallet, index) => {
-      const walletDiv = document.createElement('div');
-      walletDiv.className = 'wallet-info';
-      walletDiv.innerHTML = `
-        <h2>Wallet ${index + 1}</h2>
-        <p><strong>Address:</strong> <span id="address-${index}">${wallet.address}</span></p>
-        <p><strong>Private Key:</strong> <span id="privateKey-${index}" class="hidden">${wallet.privateKey}</span>
-        <button class="toggle-key" data-index="${index}">Show Private Key</button></p>
-        <p><strong>Mnemonic:</strong> <span id="mnemonic-${index}" class="hidden">${wallet.mnemonic}</span>
-        <button class="toggle-mnemonic" data-index="${index}">Show Mnemonic</button></p>
-        <p><strong>Balance:</strong> <span id="balance-${index}">0.0 ETH</span></p>
-        <button class="check-balance-btn" data-index="${index}">Check Balance</button>
-        <div class="send-transaction">
-          <h3>Send Transaction</h3>
-          <form id="send-form-${index}">
-            <input type="text" id="toAddress-${index}" placeholder="Recipient Address" required>
-            <input type="number" id="amount-${index}" step="0.001" placeholder="Amount in ETH" required>
-            <button type="submit" class="send-btn" data-index="${index}">Send</button>
-          </form>
-          <p><strong>Result:</strong> <span id="txResult-${index}"></span></p>
-        </div>
-      `;
-      walletList.appendChild(walletDiv);
-      const checkBalanceBtn = walletDiv.querySelector('.check-balance-btn');
-      const sendForm = walletDiv.querySelector(`#send-form-${index}`);
-      const toggleKeyBtn = walletDiv.querySelector(`.toggle-key[data-index="${index}"]`);
-      const toggleMnemonicBtn = walletDiv.querySelector(`.toggle-mnemonic[data-index="${index}"]`);
-      addEventOnElem(checkBalanceBtn, 'click', () => checkBalance(index));
-      addEventOnElem(sendForm, 'submit', (event) => sendTransaction(event, index));
-      addEventOnElem(toggleKeyBtn, 'click', () => {
-        const keySpan = document.getElementById(`privateKey-${index}`);
-        keySpan.classList.toggle('hidden');
-        keySpan.classList.contains('hidden') ? toggleKeyBtn.textContent = 'Show Private Key' : toggleKeyBtn.textContent = 'Hide Private Key';
-      });
-      addEventOnElem(toggleMnemonicBtn, 'click', () => {
-        const mnemonicSpan = document.getElementById(`mnemonic-${index}`);
-        mnemonicSpan.classList.toggle('hidden');
-        mnemonicSpan.classList.contains('hidden') ? toggleMnemonicBtn.textContent = 'Show Mnemonic' : toggleMnemonicBtn.textContent = 'Hide Mnemonic';
-      });
+let wallets = [];
+
+const loadWallets = async () => {
+  if (!walletList) {
+    console.error('Wallet list element not found');
+    return;
+  }
+  try {
+    const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/list', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      mode: 'cors'
     });
-  };
-  
-  // Open wallet modal
-  addEventOnElem(walletBtn, 'click', () => {
+    if (!response.ok) throw new Error(`Failed to load wallets: ${response.statusText}`);
+    wallets = await response.json();
+    displayWallets();
+  } catch (error) {
+    console.error('Error loading wallets:', error);
+    walletList.innerHTML = '<p>Failed to load wallets. Please try again.</p>';
+    alert('Failed to load wallets: ' + error.message);
+  }
+};
+
+const createWallet = async function () {
+  if (!walletList) {
+    console.error('Wallet list element not found');
+    return;
+  }
+  try {
+    const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      mode: 'cors',
+      body: JSON.stringify({ userId: 'default' })
+    });
+    if (!response.ok) throw new Error(`Failed to create wallet: ${response.statusText}`);
+    const wallet = await response.json();
+    // Server returns { address: "0x..." }, so mock full wallet for display
+    wallets.push({ address: wallet.address, privateKey: 'Hidden', mnemonic: 'Hidden' });
+    displayWallets();
+    console.log("Wallet created:", wallet);
+  } catch (error) {
+    console.error('Error creating wallet:', error);
+    alert('Failed to create wallet: ' + error.message);
+  }
+};
+
+const checkBalance = async function (index) {
+  try {
+    const address = wallets[index].address;
+    const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/balance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      mode: 'cors',
+      body: JSON.stringify({ address })
+    });
+    if (!response.ok) throw new Error(`Failed to check balance: ${response.statusText}`);
+    const data = await response.json();
+    const balanceSpan = document.getElementById(`balance-${index}`);
+    if (balanceSpan) {
+      balanceSpan.textContent = `${data.balance} ETH`;
+    }
+  } catch (error) {
+    console.error('Error checking balance:', error);
+    alert('Failed to check balance: ' + error.message);
+  }
+};
+
+const sendTransaction = async function (event, index) {
+  event.preventDefault();
+  try {
+    const toAddress = document.getElementById(`toAddress-${index}`).value;
+    const amount = document.getElementById(`amount-${index}`).value;
+    const privateKey = wallets[index].privateKey;
+    const response = await fetch('https://crypto-dashboard-backend.onrender.com/api/wallet/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      mode: 'cors',
+      body: JSON.stringify({ privateKey, toAddress, amount })
+    });
+    if (!response.ok) throw new Error(`Failed to send transaction: ${response.statusText}`);
+    const data = await response.json();
+    const resultSpan = document.getElementById(`txResult-${index}`);
+    if (resultSpan) {
+      resultSpan.textContent = `Transaction sent: ${data.transactionHash}`;
+    }
+  } catch (error) {
+    console.error('Error sending transaction:', error);
+    alert('Failed to send transaction: ' + error.message);
+  }
+};
+
+const displayWallets = function () {
+  if (!walletList) {
+    console.error('Wallet list element not found');
+    return;
+  }
+  walletList.innerHTML = '';
+  if (wallets.length === 0) {
+    walletList.innerHTML = '<p>No wallets found.</p>';
+    return;
+  }
+  wallets.forEach((wallet, index) => {
+    const walletDiv = document.createElement('div');
+    walletDiv.className = 'wallet-info';
+    walletDiv.innerHTML = `
+      <h2>Wallet ${index + 1}</h2>
+      <p><strong>Address:</strong> <span id="address-${index}">${wallet.address}</span></p>
+      <p><strong>Private Key:</strong> <span id="privateKey-${index}" class="hidden">${wallet.privateKey || 'Not available'}</span>
+      <button class="toggle-key" data-index="${index}">Show Private Key</button></p>
+      <p><strong>Mnemonic:</strong> <span id="mnemonic-${index}" class="hidden">${wallet.mnemonic || 'Not available'}</span>
+      <button class="toggle-mnemonic" data-index="${index}">Show Mnemonic</button></p>
+      <p><strong>Balance:</strong> <span id="balance-${index}">0.0 ETH</span></p>
+      <button class="check-balance-btn" data-index="${index}">Check Balance</button>
+      <div class="send-transaction">
+        <h3>Send Transaction</h3>
+        <form id="send-form-${index}">
+          <input type="text" id="toAddress-${index}" placeholder="Recipient Address" required>
+          <input type="number" id="amount-${index}" step="0.001" placeholder="Amount in ETH" required>
+          <button type="submit" class="send-btn" data-index="${index}">Send</button>
+        </form>
+        <p><strong>Result:</strong> <span id="txResult-${index}"></span></p>
+      </div>
+    `;
+    walletList.appendChild(walletDiv);
+    const checkBalanceBtn = walletDiv.querySelector('.check-balance-btn');
+    const sendForm = walletDiv.querySelector(`#send-form-${index}`);
+    const toggleKeyBtn = walletDiv.querySelector(`.toggle-key[data-index="${index}"]`);
+    const toggleMnemonicBtn = walletDiv.querySelector(`.toggle-mnemonic[data-index="${index}"]`);
+    addEventOnElem(checkBalanceBtn, 'click', () => checkBalance(index));
+    addEventOnElem(sendForm, 'submit', (event) => sendTransaction(event, index));
+    addEventOnElem(toggleKeyBtn, 'click', () => {
+      const keySpan = document.getElementById(`privateKey-${index}`);
+      keySpan.classList.toggle('hidden');
+      keySpan.classList.contains('hidden') ? toggleKeyBtn.textContent = 'Show Private Key' : toggleKeyBtn.textContent = 'Hide Private Key';
+    });
+    addEventOnElem(toggleMnemonicBtn, 'click', () => {
+      const mnemonicSpan = document.getElementById(`mnemonic-${index}`);
+      mnemonicSpan.classList.toggle('hidden');
+      mnemonicSpan.classList.contains('hidden') ? toggleMnemonicBtn.textContent = 'Show Mnemonic' : toggleMnemonicBtn.textContent = 'Hide Mnemonic';
+    });
+  });
+};
+
+// Open wallet modal
+addEventOnElem(walletBtn, 'click', () => {
+  if (walletModal) {
     walletModal.classList.add('active');
     loadWallets();
-  });
-  
-  // Close wallet modal
-  const walletModalClose = document.querySelector('.wallet-modal-close');
-  addEventOnElem(walletModalClose, 'click', () => {
+  } else {
+    console.error('Wallet modal not found');
+  }
+});
+
+// Close wallet modal
+addEventOnElem(walletCloseBtn, 'click', () => {
+  if (walletModal) {
     walletModal.classList.remove('active');
-  });
-  
-  // Create wallet
-    addEventOnElem(createWalletBtn, 'click', createWallet);
-  });
+  }
+});
+
+// Create wallet
+addEventOnElem(createWalletBtn, 'click', createWallet);
+});
