@@ -44,7 +44,6 @@ app.post('/api/wallet/create', async (req, res) => {
   }
 });
 
-// List wallets
 app.get('/api/wallet/list', async (req, res) => {
   try {
     const wallets = await Wallet.find({ userId: 'default' }).select('-privateKey -mnemonic');
@@ -57,8 +56,14 @@ app.get('/api/wallet/list', async (req, res) => {
 // Check balance
 app.post('/api/wallet/balance', async (req, res) => {
   try {
+    if (!process.env.INFURA_KEY) {
+      throw new Error('INFURA_KEY is not configured');
+    }
     const { address } = req.body;
-    const provider = new ethers.JsonRpcProvider(process.env.INFURA_URL || 'https://sepolia.infura.io/v3/' + process.env.INFURA_KEY);
+    if (!ethers.isAddress(address)) {
+      throw new Error('Invalid Ethereum address');
+    }
+    const provider = new ethers.JsonRpcProvider('https://sepolia.infura.io/v3/' + process.env.INFURA_KEY);
     const balance = await provider.getBalance(address);
     res.json({ balance: ethers.formatEther(balance) });
   } catch (error) {
@@ -70,8 +75,14 @@ app.post('/api/wallet/balance', async (req, res) => {
 // Send transaction
 app.post('/api/wallet/send', async (req, res) => {
   try {
+    if (!process.env.INFURA_KEY) {
+      throw new Error('INFURA_KEY is not configured');
+    }
     const { privateKey, toAddress, amount } = req.body;
-    const provider = new ethers.JsonRpcProvider(process.env.INFURA_URL || 'https://sepolia.infura.io/v3/' + process.env.INFURA_KEY);
+    if (!ethers.isAddress(toAddress)) {
+      throw new Error('Invalid Ethereum address');
+    }
+    const provider = new ethers.JsonRpcProvider('https://sepolia.infura.io/v3/' + process.env.INFURA_KEY);
     const wallet = new ethers.Wallet(privateKey, provider);
     const tx = await wallet.sendTransaction({
       to: toAddress,
