@@ -108,27 +108,3 @@ app.use((req, res) => {
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Server running on port ${port}`));
-
-// Fetch wallets
-fetch('https://crypto-wallet-backend.onrender.com/api/wallet/list')
-  .then(response => response.json())
-  .then(wallets => {
-    console.log(wallets);
-    // TODO: Update DOM (e.g., <div id="wallet-list">)
-  })
-  .catch(error => console.error('Error:', error));
-
-// Create wallet (e.g., on button click)
-function createWallet() {
-  fetch('https://crypto-wallet-backend.onrender.com/api/wallet/create', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: 'default' })
-  })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Created:', data.address);
-      // TODO: Refresh wallet list
-    })
-    .catch(error => console.error('Error:', error));
-}
