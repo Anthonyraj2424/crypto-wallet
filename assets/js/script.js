@@ -380,7 +380,7 @@ const loadWallets = async () => {
   }
   try {
     console.log('Fetching wallets from /api/wallet/list');
-    const response = await fetch('https://https://crypto-wallet-i7zk.onrender.com/api/wallet/list', {
+    const response = await fetch('https://crypto-wallet-i7zk.onrender.com/api/wallet/list', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       mode: 'cors'
@@ -404,7 +404,7 @@ const createWallet = async function () {
   }
   try {
     console.log('Creating wallet via /api/wallet/create');
-    const response = await fetch('https://https://crypto-wallet-i7zk.onrender.com/api/wallet/create', {
+    const response = await fetch('https://crypto-wallet-i7zk.onrender.com/api/wallet/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       mode: 'cors',
@@ -429,7 +429,7 @@ const checkBalance = async function (index) {
     if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
       throw new Error('Invalid wallet address');
     }
-    const response = await fetch('https://https://https://crypto-wallet-i7zk.onrender.com/api/wallet/balance', {
+    const response = await fetch('https://crypto-wallet-i7zk.onrender.com/api/wallet/balance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       mode: 'cors',
@@ -457,7 +457,7 @@ const sendTransaction = async function (event, index) {
     const amount = document.getElementById(`amount-${index}`).value;
     const privateKey = wallets[index].privateKey || 'dummy-key';
     console.log('Sending transaction:', { toAddress, amount });
-    const response = await fetch('https://https://crypto-wallet-i7zk.onrender.com/api/wallet/send', {
+    const response = await fetch('https://crypto-wallet-i7zk.onrender.com/api/wallet/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       mode: 'cors',
