@@ -11,12 +11,14 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Connect to MongoDB
+// Debug environment
+console.log('INFURA_KEY set:', !!process.env.INFURA_KEY);
+console.log('MONGODB_URI set:', !!process.env.MONGODB_URI);
+
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Wallet schema
 const walletSchema = new mongoose.Schema({
   userId: { type: String, default: 'default' },
   address: { type: String, required: true },
@@ -26,7 +28,6 @@ const walletSchema = new mongoose.Schema({
 });
 const Wallet = mongoose.model('Wallet', walletSchema);
 
-// Create wallet
 app.post('/api/wallet/create', async (req, res) => {
   try {
     const wallet = ethers.Wallet.createRandom();
@@ -53,7 +54,6 @@ app.get('/api/wallet/list', async (req, res) => {
   }
 });
 
-// Check balance
 app.post('/api/wallet/balance', async (req, res) => {
   try {
     if (!process.env.INFURA_KEY) {
@@ -72,7 +72,6 @@ app.post('/api/wallet/balance', async (req, res) => {
   }
 });
 
-// Send transaction
 app.post('/api/wallet/send', async (req, res) => {
   try {
     if (!process.env.INFURA_KEY) {
@@ -94,6 +93,11 @@ app.post('/api/wallet/send', async (req, res) => {
     console.error('Error sending transaction:', error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// Handle undefined routes
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
 });
 
 const port = process.env.PORT || 3001;
