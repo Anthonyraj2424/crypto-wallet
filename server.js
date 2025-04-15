@@ -7,8 +7,8 @@ const fetch = require('node-fetch');
 const app = express();
 app.use(cors({
   origin: [
-    'https://crypto-wallet-aaqgaev41-anthony-rajs-projects.vercel.app',
     'https://crypto-wallet-six-rho.vercel.app',
+    'https://crypto-wallet-aaqgaev41-anthony-rajs-projects.vercel.app',
     'http://localhost:3000'
   ],
   methods: ['GET', 'POST', 'OPTIONS'],
@@ -88,10 +88,10 @@ app.post('/api/wallet/send', async (req, res) => {
     if (!process.env.INFURA_KEY) {
       throw new Error('INFURA_KEY is not configured');
     }
-    const { toAddress, amount } = req.body;
+    const { privateKey, toAddress, amount } = req.body;
     console.log('Send transaction request:', { toAddress, amount });
-    if (!toAddress || !amount) {
-      throw new Error('Missing toAddress or amount');
+    if (!toAddress || !amount || !privateKey) {
+      throw new Error('Missing privateKey, toAddress, or amount');
     }
     if (!ethers.isAddress(toAddress)) {
       throw new Error(`Invalid recipient address: ${toAddress}`);
@@ -101,7 +101,7 @@ app.post('/api/wallet/send', async (req, res) => {
       throw new Error('Invalid amount');
     }
     const provider = new ethers.JsonRpcProvider('https://sepolia.infura.io/v3/' + process.env.INFURA_KEY);
-    const wallet = new ethers.Wallet(process.env.SEPOLIA_PRIVATE_KEY, provider);
+    const wallet = new ethers.Wallet(privateKey, provider);
     const tx = {
       to: toAddress,
       value: ethers.parseEther(amount)
@@ -119,12 +119,12 @@ app.get('/api/coingecko/markets', async (req, res) => {
   try {
     const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,tether,binancecoin,solana,ripple,cardano,avalanche-2&order=market_cap_desc&per_page=8&page=1&sparkline=false');
     if (!response.ok) {
-      throw new Error('Failed to fetch CoinGecko data');
+      throw new Error(`CoinGecko fetch failed: ${response.status} ${response.statusText}`);
     }
     const data = await response.json();
     res.json(data);
   } catch (error) {
-    console.error('Error fetching CoinGecko:', error);
+    console.error('Error fetching CoinGecko markets:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -134,12 +134,12 @@ app.get('/api/coingecko/coins/:id', async (req, res) => {
     const { id } = req.params;
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/${id}`);
     if (!response.ok) {
-      throw new Error('Failed to fetch coin data');
+      throw new Error(`CoinGecko coin fetch failed: ${response.status} ${response.statusText}`);
     }
     const data = await response.json();
     res.json(data);
   } catch (error) {
-    console.error('Error fetching coin:', error);
+    console.error('Error fetching CoinGecko coin:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -154,3 +154,4 @@ app.use((req, res) => {
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Server running on port ${port}`));
+
