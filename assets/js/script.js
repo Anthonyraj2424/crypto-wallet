@@ -169,13 +169,13 @@ document.addEventListener('DOMContentLoaded', () => {
               return;
             }
             if (id.includes('price') || id.includes('current')) {
-              element.textContent = `$${coin.current_price.toLocaleString()}`;
+              element.textContent = `${coin.current_price.toLocaleString()}`;
             } else if (id.includes('change')) {
               element.textContent = `${coin.price_change_percentage_24h >= 0 ? '+' : ''}${coin.price_change_percentage_24h.toFixed(2)}%`;
               element.classList.remove('green', 'red');
               element.classList.add(coin.price_change_percentage_24h >= 0 ? 'green' : 'red');
             } else if (id.includes('market-cap')) {
-              element.textContent = `$${coin.market_cap.toLocaleString()}`;
+              element.textContent = `${coin.market_cap.toLocaleString()}`;
             }
           });
 
@@ -364,9 +364,9 @@ document.addEventListener('DOMContentLoaded', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           mode: 'cors',
-          body: JSON.stringify({ toAddress, amount })
+          body: JSON.stringify({ privateKey: 'YOUR_TEST_PRIVATE_KEY', toAddress, amount })
         });
-        if (!response.ok) {
+       if (!response.ok) {
           throw new Error(`Failed to send transaction: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
